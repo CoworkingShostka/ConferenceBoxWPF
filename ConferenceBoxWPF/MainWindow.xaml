@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ConferenceBoxWPF"
+        xmlns:data ="clr-namespace:ConferenceBoxWPF.Models"
         mc:Ignorable="d"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -30,9 +31,46 @@
                                   DockPanel.Dock="Top"
                                   HorizontalAlignment="Right" Margin="16"
                                   IsChecked="{Binding ElementName=MenuToggleButton, Path=IsChecked, Mode=TwoWay}" />
-                    
+                    <ListBox x:Name="ConferencesListBox" Margin="0 16 0 16" 
+                             ItemsSource="{Binding conferenceList, Mode=OneWay}" 
+                             PreviewMouseLeftButtonUp="UIElement_OnPreviewMouseLeftButtonUp">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="data:ConferenceItem">
+                                <TextBlock Text="{Binding Name}" Margin="32 0 32 0" TextWrapping="Wrap"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </DockPanel>
             </materialDesign:DrawerHost.LeftDrawerContent>
+            <DockPanel>
+                <materialDesign:ColorZone Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                                          Mode="PrimaryMid" DockPanel.Dock="Top">
+                    <DockPanel>
+                        <ToggleButton Style="{StaticResource MaterialDesignHamburgerToggleButton}" IsChecked="True"
+                                      x:Name="MenuToggleButton" />
+                        <materialDesign:PopupBox DockPanel.Dock="Right" PlacementMode="BottomAndAlignLeftEdges" StaysOpen="False">
+                            
+                        </materialDesign:PopupBox>
+
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="22" Text="ConferenceBox" />
+                        
+                    </DockPanel>
+                </materialDesign:ColorZone>
+
+                <WrapPanel Margin="0 0 8 8">
+                    <materialDesign:Flipper>
+                       
+                            
+                        
+                    </materialDesign:Flipper>
+                    
+                </WrapPanel>
+                <!--<ScrollViewer VerticalScrollBarVisibility="Auto"
+                              Padding="16">
+                    
+                    
+                </ScrollViewer>-->
+            </DockPanel>
         </materialDesign:DrawerHost>
         
     </materialDesign:DialogHost>

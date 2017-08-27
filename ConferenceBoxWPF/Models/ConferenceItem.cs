@@ -11,14 +11,14 @@ namespace ConferenceBoxWPF.Models
     {
         private int _id;
         private string _name;
-        private object _content;
+        //private object _content;
         
-        public ConferenceItem(int id, string name, object content)
-        {
-            _id = id;
-            _name = name;
-            Content = content;
-        }
+        //public ConferenceItem(int id, string name/*, object content*/)
+        //{
+        //    _id = id;
+        //    _name = name;
+        //    //Content = content;
+        //}
 
         public int Id
         {
@@ -32,10 +32,10 @@ namespace ConferenceBoxWPF.Models
             set { SetProperty(ref _name, value); }
         }
 
-        public object Content
-        {
-            get { return _content; }
-            set { SetProperty(ref _content, value); }
-        }
+        //public object Content
+        //{
+        //    get { return _content; }
+        //    set { SetProperty(ref _content, value); }
+        //}
     }
 }
