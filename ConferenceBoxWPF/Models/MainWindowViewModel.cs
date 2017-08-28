@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿using Microsoft.Practices.Prism.Commands;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,6 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace ConferenceBoxWPF.Models
 {
@@ -18,6 +23,18 @@ namespace ConferenceBoxWPF.Models
         {
             //conferenceList.Clear();
             ConferenceListLoad();
+            ConferenceLoadCommand = new DelegateCommand<ConferenceItem>(x => LoadConference(_selectedItem.Id));
+            userListLoad = new UserListLoad();
+        }
+
+        public ICommand ConferenceLoadCommand { get; set; }
+        public UserListLoad userListLoad { get; set; }
+
+        private ConferenceItem _selectedItem;
+        public ConferenceItem SelectedItem
+        {
+            get { return _selectedItem; }
+            set { SetProperty(ref _selectedItem, value); }
         }
 
         private string _TitleText = "ConferenceBox";
@@ -67,6 +84,21 @@ namespace ConferenceBoxWPF.Models
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        public void LoadConference(int id)
+        {
+            //until we had a StaysOpen glag to Drawer, this will help with scroll bars
+            var dependencyObject = Mouse.Captured as DependencyObject;
+            while (dependencyObject != null)
+            {
+                if (dependencyObject is ScrollBar) return;
+                dependencyObject = VisualTreeHelper.GetParent(dependencyObject);
+            }
+
+            userListLoad.LoadPeople(id.ToString());
+            
+            MainWindow.Current.MenuToggleButton.IsChecked = false;
         }
     }
 }

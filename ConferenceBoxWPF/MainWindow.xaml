@@ -19,10 +19,12 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ToggleButton.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Card.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Flipper.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    
+
     <materialDesign:DialogHost Identifier="RootDialog" >
         <materialDesign:DrawerHost IsLeftDrawerOpen="{Binding ElementName=MenuToggleButton, Path=IsChecked}" >
             <materialDesign:DrawerHost.LeftDrawerContent>
@@ -32,8 +34,9 @@
                                   HorizontalAlignment="Right" Margin="16"
                                   IsChecked="{Binding ElementName=MenuToggleButton, Path=IsChecked, Mode=TwoWay}" />
                     <ListBox x:Name="ConferencesListBox" Margin="0 16 0 16" 
-                             ItemsSource="{Binding conferenceList, Mode=OneWay}" 
-                             PreviewMouseLeftButtonUp="UIElement_OnPreviewMouseLeftButtonUp">
+                             ItemsSource="{Binding conferenceList, Mode=OneWay}"
+                             SelectedItem="{Binding SelectedItem}"
+                             data:Selected.Command="{Binding ConferenceLoadCommand}">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="data:ConferenceItem">
                                 <TextBlock Text="{Binding Name}" Margin="32 0 32 0" TextWrapping="Wrap"/>
@@ -49,22 +52,73 @@
                         <ToggleButton Style="{StaticResource MaterialDesignHamburgerToggleButton}" IsChecked="True"
                                       x:Name="MenuToggleButton" />
                         <materialDesign:PopupBox DockPanel.Dock="Right" PlacementMode="BottomAndAlignLeftEdges" StaysOpen="False">
-                            
+
                         </materialDesign:PopupBox>
 
                         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="22" Text="ConferenceBox" />
-                        
+
                     </DockPanel>
                 </materialDesign:ColorZone>
 
-                <WrapPanel Margin="0 0 8 8">
-                    <materialDesign:Flipper>
-                       
-                            
-                        
-                    </materialDesign:Flipper>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
                     
-                </WrapPanel>
+                
+                <ItemsControl ItemsSource="{Binding userListLoad.People}" >
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Margin="0 0 8 8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="data:Person">
+                            <materialDesign:Flipper Style="{StaticResource MaterialDesignCardFlipper}" Margin="4 4 0 0">
+                                <materialDesign:Flipper.FrontContent>
+                                    <Grid Height="160" Width="130">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="60"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <materialDesign:ColorZone Mode="PrimaryLight" VerticalAlignment="Stretch">
+                                            <materialDesign:PackIcon Kind="AccountCircle" Height="60" Width="60"
+                                                 VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                        </materialDesign:ColorZone>
+                                        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Id}" HorizontalAlignment="Center" />
+                                            <TextBlock Text="{Binding Lastname}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Firstname}" HorizontalAlignment="Center" />
+                                            <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                                    Command="{x:Static materialDesign:Flipper.FlipCommand}"
+                                                    Margin="0 4 0 0">Редагувати</Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </materialDesign:Flipper.FrontContent>
+                                <materialDesign:Flipper.BackContent>
+                                    <Grid Height="160" Width="130">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <materialDesign:ColorZone Mode="Accent" Padding="6">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Style="{StaticResource MaterialDesignToolForegroundButton}"
+                                                        Command="{x:Static materialDesign:Flipper.FlipCommand}"
+                                                        HorizontalAlignment="Left">
+                                                    <materialDesign:PackIcon Kind="ArrowLeft" HorizontalAlignment="Right"/>
+                                                </Button>
+                                                <TextBlock Margin="8 0 0 0" VerticalAlignment="Center">Редагування</TextBlock>
+                                            </StackPanel>
+                                        </materialDesign:ColorZone>
+                                    </Grid>
+                                </materialDesign:Flipper.BackContent>
+                            </materialDesign:Flipper>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                </ScrollViewer>
+
+
+
+
                 <!--<ScrollViewer VerticalScrollBarVisibility="Auto"
                               Padding="16">
                     
@@ -72,7 +126,7 @@
                 </ScrollViewer>-->
             </DockPanel>
         </materialDesign:DrawerHost>
-        
+
     </materialDesign:DialogHost>
-    
+
 </Window>
