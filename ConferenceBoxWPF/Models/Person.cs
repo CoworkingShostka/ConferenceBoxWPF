@@ -18,6 +18,7 @@ namespace ConferenceBoxWPF.Models
         private string _barcode;
         private string _notes;
         private int _isVisited;
+        private string _colorMode = "PrimaryLight";
 
         public int Id
         {
@@ -53,6 +54,11 @@ namespace ConferenceBoxWPF.Models
         {
             get { return _isVisited; }
             set { SetProperty(ref _isVisited, value); }
+        }
+        public string ColorMode
+        {
+            get { return _colorMode; }
+            set { SetProperty(ref _colorMode, value); }
         }
     }
 }

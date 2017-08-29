@@ -10,6 +10,7 @@ namespace ConferenceBoxWPF.Models
 {
     public class RelayCommand : ICommand
     {
+        
         #region Fields 
         readonly Action<object> _execute;
         readonly Predicate<object> _canExecute;
@@ -36,5 +37,6 @@ namespace ConferenceBoxWPF.Models
         }
         public void Execute(object parameter) { _execute(parameter); }
         #endregion // ICommand Members 
+    
     }
 }

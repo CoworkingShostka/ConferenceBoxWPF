@@ -24,11 +24,14 @@ namespace ConferenceBoxWPF
     public partial class MainWindow : Window
     {
         public static MainWindow Current;
+        
 
         public MainWindow()
         {
             InitializeComponent();
             Current = this;
+
+            Closing += viewModel.MainWindowClosing;
 
             DataContext = viewModel;
         }
