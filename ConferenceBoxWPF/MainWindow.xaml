@@ -13,8 +13,8 @@
         TextElement.FontSize="14"
         FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
         
-        Title="ConferenceBox" Height="800" Width="1280">
-
+        Title="ConferenceBox" Height="800" Width="1280" WindowState="Maximized">
+    <!--WindowState="Maximized"-->
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -52,16 +52,21 @@
                     <DockPanel>
                         <ToggleButton Style="{StaticResource MaterialDesignHamburgerToggleButton}" IsChecked="True"
                                       x:Name="MenuToggleButton" />
-                        <materialDesign:PopupBox DockPanel.Dock="Right" PlacementMode="BottomAndAlignLeftEdges" StaysOpen="False">
-
+                        <materialDesign:PopupBox x:Name="MenuPopupBox" DockPanel.Dock="Right" PlacementMode="BottomAndAlignLeftEdges" StaysOpen="False" >
+                            <ComboBox x:Name="MenuComboBox" MinWidth="250" Margin="3" materialDesign:HintAssist.Hint="Виберіть камеру"
+                                      SelectedItem="{Binding MenuComboBoxSelectedItem, Mode=TwoWay}">
+                                
+                            </ComboBox>
+                            <!--ItemsSource="{Binding LocalWebCamsCollection.InnerList, Mode=OneWay}"-->
                         </materialDesign:PopupBox>
                         
                         <Button Command="{Binding CameraOpenCommand}"
-                                Margin="4" DockPanel.Dock="Right">
+                                Margin="4" DockPanel.Dock="Right" IsEnabled="{Binding CameraButtonEnable}">
                             <materialDesign:PackIcon Kind="Camera"/>
                         </Button>
-
-                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="22" Text="ConferenceBox" />
+                        <TextBlock Text="Conference Box:" HorizontalAlignment="Center"  FontSize="22" DockPanel.Dock="Top" />
+                        <TextBlock x:Name="TitleTextBox" HorizontalAlignment="Center"  
+                                   FontSize="22" Text="{Binding TitleText}" TextWrapping="Wrap" DockPanel.Dock="Bottom"/>
 
                     </DockPanel>
                 </materialDesign:ColorZone>
@@ -69,7 +74,7 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
 
 
-                    <ItemsControl ItemsSource="{Binding userList.People}" >
+                    <ItemsControl ItemsSource="{Binding userList.People}" x:Name="UserListItems">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Margin="0 0 8 8" />
@@ -79,13 +84,13 @@
                             <DataTemplate DataType="data:Person">
                                 <materialDesign:Flipper Style="{StaticResource MaterialDesignCardFlipper}" Margin="4 4 0 0">
                                     <materialDesign:Flipper.FrontContent>
-                                        <Grid Height="160" Width="130">
+                                        <Grid Height="250" Width="200">
                                             <Grid.RowDefinitions>
-                                                <RowDefinition Height="60"/>
+                                                <RowDefinition Height="128"/>
                                                 <RowDefinition Height="*"/>
                                             </Grid.RowDefinitions>
                                             <materialDesign:ColorZone Mode="{Binding ColorMode}" VerticalAlignment="Stretch">
-                                                <materialDesign:PackIcon Kind="AccountCircle" Height="60" Width="60"
+                                                <materialDesign:PackIcon Kind="AccountCircle" Height="100" Width="100"
                                                  VerticalAlignment="Center" HorizontalAlignment="Center" />
                                                 <!--<ToggleButton Margin="0 0 8 8" 
                                                               Style="{StaticResource MaterialDesignActionToggleButton}"
@@ -96,9 +101,9 @@
                                             </materialDesign:ColorZone>
                                             <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 
-                                                <TextBlock Text="{Binding Id}" HorizontalAlignment="Center" />
-                                                <TextBlock Text="{Binding Lastname}" HorizontalAlignment="Center"/>
-                                                <TextBlock Text="{Binding Firstname}" HorizontalAlignment="Center" />
+                                                <!--<TextBlock Text="{Binding Id}" HorizontalAlignment="Center" />-->
+                                                <TextBlock Text="{Binding Lastname}" HorizontalAlignment="Center" FontSize="18"/>
+                                                <TextBlock Text="{Binding Firstname}" HorizontalAlignment="Center" FontSize="18" />
                                                 <Button Style="{StaticResource MaterialDesignFlatButton}"
                                                     Command="{x:Static materialDesign:Flipper.FlipCommand}"
                                                     Margin="0 4 0 0">Редагувати</Button>
@@ -106,7 +111,7 @@
                                         </Grid>
                                     </materialDesign:Flipper.FrontContent>
                                     <materialDesign:Flipper.BackContent>
-                                        <Grid Height="160" Width="130">
+                                        <Grid Height="250" Width="200">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="*"/>
@@ -118,9 +123,33 @@
                                                         HorizontalAlignment="Left">
                                                         <materialDesign:PackIcon Kind="ArrowLeft" HorizontalAlignment="Right"/>
                                                     </Button>
-                                                    <TextBlock Margin="8 0 0 0" VerticalAlignment="Center">Редагування</TextBlock>
+                                                    <TextBlock Margin="10 0 0 0" VerticalAlignment="Center">Редагування</TextBlock>
                                                 </StackPanel>
                                             </materialDesign:ColorZone>
+                                            <Grid Grid.Row="1" Margin="0 3 0 0" HorizontalAlignment="Center" VerticalAlignment="Top"
+                                                  Width="172" >
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                </Grid.RowDefinitions>
+                                                <TextBox materialDesign:HintAssist.Hint="Прізвище" materialDesign:HintAssist.IsFloating="True"
+                                                         Margin="0 3 0 0" Text="{Binding Lastname}" />
+                                                <TextBox Grid.Row="1" materialDesign:HintAssist.Hint="Ім'я" materialDesign:HintAssist.IsFloating="True"
+                                                         Margin="0 3 0 0" Text="{Binding Firstname}" />
+                                                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0 6 0 0" HorizontalAlignment="Right">
+                                                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left">Присутній</TextBlock>
+                                                    <ToggleButton Margin="10 0 0 0" IsChecked="{Binding IsVisited}" HorizontalAlignment="Right"/>
+                                                </StackPanel>
+                                                <TextBox Grid.Row="3" materialDesign:HintAssist.Hint="Email" materialDesign:HintAssist.IsFloating="True"
+                                                         Margin="0 3 0 0" Text="{Binding Email}" />
+                                                <Button Grid.Row="4" Margin="0 10 0 0" HorizontalAlignment="Center"
+                                                        Command="{Binding ElementName=UserListItems, Path= DataContext.UserEditCommand}" 
+                                                        CommandParameter="{Binding}">Зберегти</Button>
+                                            </Grid>
+                                            
                                         </Grid>
                                     </materialDesign:Flipper.BackContent>
                                 </materialDesign:Flipper>
@@ -128,18 +157,23 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
+                
             </DockPanel>
             <materialDesign:DrawerHost.RightDrawerContent>
                 <StackPanel Margin="16">
                     <Image HorizontalAlignment="Stretch" Name="FrameHolder" 
-                           VerticalAlignment="Stretch" MaxHeight="250" MaxWidth="250"/>
+                           VerticalAlignment="Stretch" MaxHeight="300" MaxWidth="300"/>
                     <TextBlock Name="BarcodeTextBlock" FontSize="18"/>
                     <Button Command="{Binding CameraCloseCommand}"
                             Margin="4" HorizontalAlignment="Center">
                         Закрити
                     </Button>
-
+                    <materialDesign:Snackbar MessageQueue="{materialDesign:MessageQueue}"
+                                         x:Name="MySnackbar"
+                                         VerticalAlignment="Bottom"/>
                 </StackPanel>
+                <!--<materialDesign:Snackbar MessageQueue="{materialDesign:MessageQueue}"
+                                         x:Name="RightSnackbar"/>-->
             </materialDesign:DrawerHost.RightDrawerContent>
         </materialDesign:DrawerHost>
 

@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 
 using ConferenceBoxWPF.Models;
 using System.Windows.Controls.Primitives;
+using MaterialDesignThemes.Wpf;
 
 namespace ConferenceBoxWPF
 {
@@ -23,20 +24,21 @@ namespace ConferenceBoxWPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static MainWindow Current;
-        
-
+        public static MainWindow Current;   //object to get access to UI elements
+                
         public MainWindow()
         {
             InitializeComponent();
             Current = this;
 
-            Closing += viewModel.MainWindowClosing;
+            viewModel = new MainWindowViewModel(MySnackbar.MessageQueue);
+
+            Closing += viewModel.MainWindowClosing; //extend standart Closing method
 
             DataContext = viewModel;
         }
 
-        MainWindowViewModel viewModel = new MainWindowViewModel();
+        MainWindowViewModel viewModel { get; set; }
 
     }
 }

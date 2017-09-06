@@ -21,6 +21,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using ZXing;
 using System.ComponentModel;
+using MaterialDesignThemes.Wpf;
 
 namespace ConferenceBoxWPF.Models
 {
@@ -29,27 +30,38 @@ namespace ConferenceBoxWPF.Models
     /// </summary>
     public class MainWindowViewModel : NotificationBase
     {
-        VideoCaptureDevice LocalWebCam;
-        public FilterInfoCollection LocalWebCamsCollection;
-        private Bitmap currentBitmapForDecoding;
-        private readonly Thread decodingThread;
-        private Result currentResult;
-        //private readonly System.Drawing.Pen resultRectPen;
-        static ManualResetEvent CameraEvent = new ManualResetEvent(false);
-        bool CameraStarted = false;
-        int _conferenceID;
-
-        public MainWindowViewModel()
+        public struct Device
         {
-            //conferenceList.Clear();
-            ConferenceListLoad();
-            ConferenceLoadCommand = new DelegateCommand<ConferenceItem>(x => LoadConference(_selectedItem.Id));
-            userList = new UserListControll();
+            public int Index;
+            public string Name;
+            public override string ToString()
+            {
+                return Name;
+            }
+        }
+
+        VideoCaptureDevice LocalWebCam; //object for camera controll
+        public FilterInfoCollection LocalWebCamsCollection; //list of awaliable cameras
+        private Bitmap currentBitmapForDecoding;    //Image send to barcode decoder
+        private readonly Thread decodingThread; //Thread to decode imgs
+        private Result currentResult;   //decoding result
+        //private readonly System.Drawing.Pen resultRectPen;
+        static ManualResetEvent CameraEvent = new ManualResetEvent(false);  //event to controll decodingThread 
+        bool CameraStarted = false; //flag shows that camera statrted
+        int _conferenceID;  //current conference ID
+
+        public MainWindowViewModel(ISnackbarMessageQueue snackbarMessageQueue)
+        {
+            ConferenceListLoad();   //load conference list from DB
+            ConferenceLoadCommand = new DelegateCommand<ConferenceItem>(x => LoadConference(_selectedItem.Id)); //load user from chosen conference
+
+            userList = new UserListControll(snackbarMessageQueue);  //object to 
 
             MainWindow_Loaded();
             decodingThread = new Thread(DecodeBarcode);
             decodingThread.IsBackground = true;
             decodingThread.Start();
+
         }
 
         public ICommand ConferenceLoadCommand { get; set; }
@@ -62,18 +74,86 @@ namespace ConferenceBoxWPF.Models
             set { SetProperty(ref _selectedItem, value); }
         }
 
-        private string _TitleText = "ConferenceBox";
+        private string _TitleText = "Виберіть конфернцію";
         public string TitleText
         {
             get { return _TitleText; }
             set { SetProperty(ref _TitleText, value); }
         }
 
+        private Device _menuComboBoxSelectedItem;
+        public Device MenuComboBoxSelectedItem
+        {
+            get { return _menuComboBoxSelectedItem; }
+            set
+            {
+                SetProperty(ref _menuComboBoxSelectedItem, value);
+                if (!_menuComboBoxSelectedItem.Equals(null))
+                {
+                    CameraButtonEnable = true;
+                    //ConferenceBox.Properties.Settings.Default.CameraIndx = _menuComboBoxSelectedItem.Index;
+                }
+            }
+        }
+
+        private bool _cameraButtonEnable;
+        public bool CameraButtonEnable
+        {
+            get { return _cameraButtonEnable; }
+            set { SetProperty(ref _cameraButtonEnable, value); }
+        }
+
+        //private Person _userItemForEdit;
+        //public Person UserItemToEdit
+        //{
+        //    get { return _userItemForEdit; }
+        //    set { SetProperty(ref _userItemForEdit, value); }
+        //}
+
         private ObservableCollection<ConferenceItem> _conferenceList = new ObservableCollection<ConferenceItem>();
         public ObservableCollection<ConferenceItem> conferenceList
         {
             get { return _conferenceList; }
             set { SetProperty(ref _conferenceList, value); }
+        }
+
+        RelayCommand _cameraOpenCommand;
+        public ICommand CameraOpenCommand
+        {
+            get
+            {
+                if (_cameraOpenCommand == null)
+                {
+                    _cameraOpenCommand = new RelayCommand(param => this.CameraOpen());
+                }
+                return _cameraOpenCommand;
+            }
+        }
+
+        RelayCommand _cameraCloseCommand;
+        public ICommand CameraCloseCommand
+        {
+            get
+            {
+                if (_cameraCloseCommand == null)
+                {
+                    _cameraCloseCommand = new RelayCommand(param => this.CameraClose());
+                }
+                return _cameraCloseCommand;
+            }
+        }
+
+        RelayCommand _userEditCommand;
+        public ICommand UserEditCommand
+        {
+            get
+            {
+                if (_userEditCommand == null)
+                {
+                    _userEditCommand = new RelayCommand((param) => this.UserEdit((Person)param));
+                }
+                return _userEditCommand;
+            }
         }
 
         string connStr = "server=shostka.mysql.ukraine.com.ua;user=shostka_conf;database=shostka_conf;port=3306;password=Cpu1234Pro;";
@@ -104,6 +184,7 @@ namespace ConferenceBoxWPF.Models
 
                     conn.Close();
                 }
+
             }
             catch (Exception ex)
             {
@@ -122,41 +203,41 @@ namespace ConferenceBoxWPF.Models
             }
 
             _conferenceID = id;
+
             userList.LoadPeople(id.ToString());
 
+            TitleText = conferenceList.FirstOrDefault(i => i.Id == id).Name;
+
             MainWindow.Current.MenuToggleButton.IsChecked = false;
-        }
-
-        RelayCommand _cameraOpenCommand;
-        public ICommand CameraOpenCommand
-        {
-            get
-            {
-                if (_cameraOpenCommand == null)
-                {
-                    _cameraOpenCommand = new RelayCommand(param => this.CameraOpen());
-                }
-                return _cameraOpenCommand;
-            }
-        }
-
-        RelayCommand _cameraCloseCommand;
-        public ICommand CameraCloseCommand
-        {
-            get
-            {
-                if (_cameraCloseCommand == null)
-                {
-                    _cameraCloseCommand = new RelayCommand(param => this.CameraClose());
-                }
-                return _cameraCloseCommand;
-            }
+            //CameraCheck();
+            MainWindow.Current.MenuPopupBox.IsPopupOpen = true;
         }
 
         void MainWindow_Loaded()
         {
             LocalWebCamsCollection = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+
+            for (int ind = 0; ind < LocalWebCamsCollection.Count; ind++)
+            {
+                MainWindow.Current.MenuComboBox.Items.Add(new Device
+                {
+                    Index = ind,
+                    Name = LocalWebCamsCollection[ind].Name
+                });
+            }
+
         }
+
+        //void CameraCheck()
+        //{
+        //    if (ConferenceBox.Properties.Settings.Default.CameraIndx == 999)
+        //    {
+        //        MainWindow.Current.MenuPopupBox.IsPopupOpen = true;
+        //        return;
+        //    }
+        //    else { MainWindow.Current.MenuComboBox.SelectedIndex = ConferenceBox.Properties.Settings.Default.CameraIndx;
+        //    }
+        //}
 
         public void CameraOpen()
         {
@@ -164,7 +245,8 @@ namespace ConferenceBoxWPF.Models
             {
                 MainWindow.Current.MainDrawer.IsRightDrawerOpen = true;
 
-                LocalWebCam = new VideoCaptureDevice(LocalWebCamsCollection[0].MonikerString);
+                LocalWebCam = new VideoCaptureDevice(LocalWebCamsCollection[MenuComboBoxSelectedItem.Index].MonikerString);
+
                 LocalWebCam.NewFrame += new NewFrameEventHandler(Cam_NewFrame);
                 LocalWebCam.Start();
 
@@ -172,11 +254,11 @@ namespace ConferenceBoxWPF.Models
                 //decodingThread.Start();
                 if (!CameraStarted) CameraStarted = true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-            
+
         }
 
         void Cam_NewFrame(object sender, NewFrameEventArgs eventArgs)
@@ -226,10 +308,13 @@ namespace ConferenceBoxWPF.Models
                     {
                         userList.MarkPerson(result.Text, _conferenceID);
                         MainWindow.Current.Dispatcher.BeginInvoke(new Action<Result>(ShowResult), result);
+                        Thread.Sleep(650);
+                        MainWindow.Current.Dispatcher.BeginInvoke(new Action(ClearResult));
                     }
-
                     currentBitmapForDecoding.Dispose();
                     currentBitmapForDecoding = null;
+                    Thread.Sleep(650);
+
                 }
                 Thread.Sleep(200);
             }
@@ -241,6 +326,10 @@ namespace ConferenceBoxWPF.Models
             MainWindow.Current.BarcodeTextBlock.Text = result.Text;
         }
 
+        private void ClearResult()
+        {
+            MainWindow.Current.BarcodeTextBlock.Text = "";
+        }
 
         public void CameraClose()
         {
@@ -253,13 +342,25 @@ namespace ConferenceBoxWPF.Models
 
         public void MainWindowClosing(object sender, CancelEventArgs e)
         {
-            if(CameraStarted)
+            if (CameraStarted)
             {
                 LocalWebCam.NewFrame -= new NewFrameEventHandler(Cam_NewFrame);
                 Dispatcher.CurrentDispatcher.InvokeShutdown();
                 LocalWebCam.SignalToStop();
                 LocalWebCam.WaitForStop();
             }
+        }
+
+        public void UserEdit(Person person)
+        {
+            //Flipper flipper = (Flipper)item;
+            //Person person = (Person)item;
+            if (person != null)
+            {
+                userList.EditUser(person, _conferenceID);
+            }
+
+            //flipper.IsFlipped = false;
         }
     }
 }

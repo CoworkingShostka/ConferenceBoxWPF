@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿using MaterialDesignThemes.Wpf;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,6 +12,12 @@ namespace ConferenceBoxWPF.Models
 {
     public class UserListControll : NotificationBase
     {
+        private readonly ISnackbarMessageQueue _snackbarMessageQueue;
+
+        public UserListControll(ISnackbarMessageQueue snackbarMessageQueue)
+        {
+            _snackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
+        }
 
         private static ObservableCollection<Person> _people = new ObservableCollection<Person>();
         public ObservableCollection<Person> People
@@ -56,7 +63,7 @@ namespace ConferenceBoxWPF.Models
                                 Barcode = rdr.GetString("barcode"),
                                 Notes = rdr.GetString("notes"),
                                 IsVisited = rdr.GetInt32("is_visited")
-                                //ColorMode = "PrimaryLight"
+                                
                             });
                         }
                         rdr.Close();
@@ -91,6 +98,16 @@ namespace ConferenceBoxWPF.Models
                         cmd.ExecuteNonQuery();
                         conn.Clone();
                     }
+
+                    //var messageQueue = MainWindow.Current.RightSnackbar;
+                    var message = item.Firstname + " " + item.Lastname + " прибув.";
+                    //var message = "прибув";
+
+                    Task.Factory.StartNew(() => _snackbarMessageQueue.Enqueue(message));
+                }
+                else
+                {
+                    Task.Factory.StartNew(() => _snackbarMessageQueue.Enqueue("Не розпізнано \nабо не знайдено"));
                 }
             }
             catch(Exception ex)
@@ -98,6 +115,33 @@ namespace ConferenceBoxWPF.Models
                 MessageBox.Show(ex.Message);
             }
             
+        }
+
+        public void EditUser(Person _person, int conferenceID)
+        {
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(connStr))
+                {
+                    conn.Open();
+
+                    string sql = "UPDATE users, conference_" + conferenceID + " AS conf " +
+                        "SET conf.is_visited = @visited, users.firstname= @firstname, users.lastname= @lastname " +
+                        "WHERE users.id= @id AND conf.user_id= @id";
+                    MySqlCommand cmd = new MySqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@visited", _person.IsVisited);
+                    cmd.Parameters.AddWithValue("@firstname", _person.Firstname);
+                    cmd.Parameters.AddWithValue("@lastname", _person.Lastname);
+                    cmd.Parameters.AddWithValue("@id", _person.Id);
+
+                    cmd.ExecuteNonQuery();
+                    conn.Clone();
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
     }
 }

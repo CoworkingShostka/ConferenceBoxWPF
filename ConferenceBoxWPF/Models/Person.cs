@@ -53,7 +53,9 @@ namespace ConferenceBoxWPF.Models
         public int IsVisited
         {
             get { return _isVisited; }
-            set { SetProperty(ref _isVisited, value); }
+            set { SetProperty(ref _isVisited, value);
+                ColorMode = _isVisited.Equals(1) ? "Accent" : "PrimaryLight";
+            }
         }
         public string ColorMode
         {
